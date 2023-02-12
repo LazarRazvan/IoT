@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <title>Records</title>
+  </head>
+  <body>
+    <h1>Records</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Value</th>
+        <th>Timestamp</th>
+      </tr>
+      {% for record in records %}
+      <tr>
+        <td>{{ record[0] }}</td>
+        <td>{{ record[1] }}</td>
+        <td>{{ record[2] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
+
