@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from datetime import datetime
+from threading import Lock
 
 """
 Singleton data base to store the value of energy produced by the solar panels.
@@ -9,6 +10,7 @@ class EnergyDB(object):
     """ Database location"""
     DB_NAME = "energy.db"
     __singleton = None
+    __lock = Lock()
 
     @staticmethod
     def get_instance(self):
@@ -25,7 +27,7 @@ class EnergyDB(object):
             raise Exception("Singleton error!")
 
         # Connect to DB
-        self.connection = sqlite3.connect(EnergyDB.DB_NAME)
+        self.connection = sqlite3.connect(EnergyDB.DB_NAME, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
         # Create table
@@ -48,6 +50,8 @@ class EnergyDB(object):
 
     def insert_data(self, data_tuple):
         """ Insert inverter records to data base """
+        self.__lock.acquire()
+
         self.cursor.execute("""
             INSERT INTO InverterEnergy (active_power, reactive_power, temperature, input_voltage, input_current, timestamp)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -55,14 +59,13 @@ class EnergyDB(object):
         )
         self.connection.commit()
 
+        self.__lock.release()
+
     def get_data(self):
         """ Print data base InverterEnergy records """
-        print("InverterEnergy:")
+        self.__lock.acquire()
+
         records = self.cursor.execute("SELECT * FROM InverterEnergy").fetchall()
-        print(records)
 
+        self.__lock.release()
         return records
-
-    def commit(self):
-        """ Commit changes to database """
-        self.connection.commit()
