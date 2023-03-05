@@ -9,7 +9,9 @@ class Inverter(object):
     login_url = 'https://eu5.fusionsolar.huawei.com/thirdData/login'
     logout_url = 'https://eu5.fusionsolar.huawei.com/thirdData/logout'
     station_list_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getStationList'
-    real_time_data_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getStationRealKpi'
+    station_rtime_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getStationRealKpi'
+    device_list_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getDevList'
+    device_rtime_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getDevRealKpi'
 
     def __init__(self, username, password):
         """ Initialize connection data """
@@ -69,13 +71,39 @@ class Inverter(object):
             print(station)
             print("\n")
 
+    def get_devices_list(self, station_code):
+        """
+        TODO: Read station list for current user.
+        """
+        rtime_obj = { "stationCodes" : station_code }
+
+        # Send get station list request
+        response = requests.post(
+                                self.device_list_url,
+                                json = rtime_obj,
+                                cookies = {"XSRF-TOKEN" : self.xsrf_token, "web-auth" : "true"},
+                                headers = {"XSRF-TOKEN": self.xsrf_token},
+                                timeout = 3600
+        )
+
+        # Inspect response
+        json_devices = json.loads(response.content)
+        if json_devices['success'] == False:
+            raise ValueError("Inverter get devices list error!")
+
+
+        print("Devices number: %d\n" % (len(json_devices['data'])))
+        for dev in json_devices['data']:
+            print(dev)
+            print("\n")
+
     def get_plant_data(self, plant_code):
         """ TODO: Return """
         rtime_obj = { "stationCodes" : plant_code }
 
         # Send real time data request
         response = requests.post(
-                                self.real_time_data_url,
+                                self.station_rtime_url,
                                 json = rtime_obj,
                                 cookies = {"XSRF-TOKEN" : self.xsrf_token, "web-auth" : "true"},
                                 headers = {"XSRF-TOKEN": self.xsrf_token},
@@ -88,6 +116,7 @@ class Inverter(object):
             raise ValueError("Plant real time data error!")
 
         # Print values
+        print(json_rtime['data'])
         for data_obj in json_rtime['data']:
             map_obj = data_obj.get('dataItemMap')
             print ("Day power : %s" % map_obj.get('day_power'))
@@ -96,3 +125,31 @@ class Inverter(object):
             print ("Health State : %s" % map_obj.get('real_health_state'))
 
         return (map_obj.get('day_power'), map_obj.get('month_power'), map_obj.get('total_power'))
+
+    def get_device_data(self, dev_id, dev_type):
+        """ TODO """
+        rtime_obj = { "devIds" : dev_id, "devTypeId" : dev_type }
+
+        # Send real time data request
+        response = requests.post(
+                                self.device_rtime_url,
+                                json = rtime_obj,
+                                cookies = {"XSRF-TOKEN" : self.xsrf_token, "web-auth" : "true"},
+                                headers = {"XSRF-TOKEN": self.xsrf_token},
+                                timeout = 3600
+        )
+
+        json_rtime = json.loads(response.content)
+        if json_rtime['success'] == False:
+            raise ValueError("Device real time data error!")
+
+        print (json_rtime['data'])
+        for data_obj in json_rtime['data']:
+            map_obj = data_obj.get('dataItemMap')
+            print ("Active power : %s" % map_obj.get('active_power'))
+            print ("Reactive power : %s" % map_obj.get('reactive_power'))
+            print ("Temperature : %s" % map_obj.get('temperature'))
+            print ("Input Voltage : %s" % map_obj.get('pv1_u'))
+            print ("Input Current : %s" % map_obj.get('pv1_i'))
+
+        return (map_obj.get('active_power'), map_obj.get('reactive_power'), map_obj.get('temperature'), map_obj.get('pv1_u'), map_obj.get('pv1_i'))

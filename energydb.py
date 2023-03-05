@@ -21,9 +21,11 @@ class EnergyDB(object):
         """ Create table to track invertor energy """
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS InverterEnergy (
-            day_power REAL,
-            month_power REAL,
-            total_power REAL,
+            active_power REAL,
+            reactive_power REAL,
+            temperature REAL,
+            input_voltage REAL,
+            input_current REAL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -31,9 +33,9 @@ class EnergyDB(object):
     def insert_data(self, data_tuple):
         """ Insert inverter records to data base """
         self.cursor.execute("""
-            INSERT INTO InverterEnergy (day_power, month_power, total_power)
-            VALUES (?, ?, ?)
-            """, (data_tuple[0], data_tuple[1], data_tuple[2]),
+            INSERT INTO InverterEnergy (active_power, reactive_power, temperature, input_voltage, input_current)
+            VALUES (?, ?, ?, ?, ?)
+            """, (data_tuple[0], data_tuple[1], data_tuple[2], data_tuple[3], data_tuple[4]),
         )
 
     def get_data(self):
