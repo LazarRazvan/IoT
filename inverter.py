@@ -1,6 +1,7 @@
 import sys
 import json
 import requests
+from datetime import datetime
 
 """
 Read data from inverter.
@@ -143,13 +144,5 @@ class Inverter(object):
         if json_rtime['success'] == False:
             raise ValueError("Device real time data error!")
 
-        print (json_rtime['data'])
-        for data_obj in json_rtime['data']:
-            map_obj = data_obj.get('dataItemMap')
-            print ("Active power : %s" % map_obj.get('active_power'))
-            print ("Reactive power : %s" % map_obj.get('reactive_power'))
-            print ("Temperature : %s" % map_obj.get('temperature'))
-            print ("Input Voltage : %s" % map_obj.get('pv1_u'))
-            print ("Input Current : %s" % map_obj.get('pv1_i'))
-
-        return (map_obj.get('active_power'), map_obj.get('reactive_power'), map_obj.get('temperature'), map_obj.get('pv1_u'), map_obj.get('pv1_i'))
+        data_map = json_rtime['data'][0].get('dataItemMap')
+        return (data_map.get('active_power'), datetime.now())

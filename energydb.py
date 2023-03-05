@@ -1,6 +1,5 @@
 import json
 import sqlite3
-from datetime import datetime
 from threading import Lock
 
 """
@@ -34,10 +33,6 @@ class EnergyDB(object):
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS InverterEnergy (
             active_power REAL,
-            reactive_power REAL,
-            temperature REAL,
-            input_voltage REAL,
-            input_current REAL,
             timestamp DATETIME
         )
         """)
@@ -53,9 +48,9 @@ class EnergyDB(object):
         self.__lock.acquire()
 
         self.cursor.execute("""
-            INSERT INTO InverterEnergy (active_power, reactive_power, temperature, input_voltage, input_current, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (data_tuple[0], data_tuple[1], data_tuple[2], data_tuple[3], data_tuple[4], datetime.now())
+            INSERT INTO InverterEnergy (active_power, timestamp)
+            VALUES (?, ?)
+            """, (data_tuple[0], data_tuple[1])
         )
         self.connection.commit()
 

@@ -18,14 +18,14 @@ db = None
 #
 def collect_process_data():
     # Intialize Huawei Fusion Solar
-    inverter = inverter.Inverter('TODO','TODO')
-    inverter.login()
-    inverter.get_stations_list()
-    inverter.get_devices_list('NE=34087202')
+    inv = inverter.Inverter('TODO','TODO')
+    inv.login()
+    inv.get_stations_list()
+    inv.get_devices_list('NE=34087202')
 
     while True:
         print("==================== collect data ====================")
-        inverter_data = inverter.get_device_data('1000000034087203', '38')
+        inverter_data = inv.get_device_data('1000000034087203', '38')
 
         # Insert data to data base
         db.insert_data(inverter_data)
