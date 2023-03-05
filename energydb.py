@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from datetime import datetime
 
 """
 Singleton data base to store the value of energy produced by the solar panels.
@@ -35,7 +36,7 @@ class EnergyDB(object):
             temperature REAL,
             input_voltage REAL,
             input_current REAL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME
         )
         """)
 
@@ -48,9 +49,9 @@ class EnergyDB(object):
     def insert_data(self, data_tuple):
         """ Insert inverter records to data base """
         self.cursor.execute("""
-            INSERT INTO InverterEnergy (active_power, reactive_power, temperature, input_voltage, input_current)
-            VALUES (?, ?, ?, ?, ?)
-            """, (data_tuple[0], data_tuple[1], data_tuple[2], data_tuple[3], data_tuple[4]),
+            INSERT INTO InverterEnergy (active_power, reactive_power, temperature, input_voltage, input_current, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (data_tuple[0], data_tuple[1], data_tuple[2], data_tuple[3], data_tuple[4], datetime.now())
         )
         self.connection.commit()
 
