@@ -2,23 +2,32 @@ import json
 import sqlite3
 
 """
-Data base to store the value of energy produced by the solar panels.
+Singleton data base to store the value of energy produced by the solar panels.
 """
 class EnergyDB(object):
     """ Database location"""
     DB_NAME = "energy.db"
+    __singleton = None
+
+    @staticmethod
+    def get_instance(self):
+        """ Get DB instance """
+        if EnergyDB.__singleton == None:
+            EnergyDB()
+
+        return EnergyDB.__singleton
 
     def __init__(self):
-        """ Connect to data base """
+        """ Connect to data base and create table """
+        # Singleton
+        if EnergyDB.__singleton != None:
+            raise Exception("Singleton error!")
+
+        # Connect to DB
         self.connection = sqlite3.connect(EnergyDB.DB_NAME)
         self.cursor = self.connection.cursor()
 
-    def close(self):
-        """ Close data base connection """
-        self.connection.close()
-
-    def create_table(self):
-        """ Create table to track invertor energy """
+        # Create table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS InverterEnergy (
             active_power REAL,
@@ -30,6 +39,12 @@ class EnergyDB(object):
         )
         """)
 
+        EnergyDB.__singleton = self
+
+    def close(self):
+        """ Close data base connection """
+        self.connection.close()
+
     def insert_data(self, data_tuple):
         """ Insert inverter records to data base """
         self.cursor.execute("""
@@ -37,6 +52,7 @@ class EnergyDB(object):
             VALUES (?, ?, ?, ?, ?)
             """, (data_tuple[0], data_tuple[1], data_tuple[2], data_tuple[3], data_tuple[4]),
         )
+        self.connection.commit()
 
     def get_data(self):
         """ Print data base InverterEnergy records """

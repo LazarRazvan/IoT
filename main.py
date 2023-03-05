@@ -9,7 +9,6 @@ TODO
 if __name__ == "__main__":
     # Create database
     db = energydb.EnergyDB()
-    db.create_table()
 
     # Huawei Fusion Solar Connect
     inverter = inverter.Inverter('TODO','TODO')
