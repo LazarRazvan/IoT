@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from threading import Lock
+from datetime import datetime, date
 
 """
 Singleton data base to store the value of energy produced by the solar panels.
@@ -64,3 +65,17 @@ class EnergyDB(object):
 
         self.__lock.release()
         return records
+
+    def get_data_by_date(self, datetime_min, datetime_max):
+        """ Print data base InverterEnergy records filtered by date"""
+        self.__lock.acquire()
+
+        current_date = date.today()
+        records = self.cursor.execute(
+                        "SELECT * FROM InverterEnergy WHERE timestamp BETWEEN ? AND ?",
+                        (datetime_min,datetime_max)
+                    ).fetchall()
+
+        self.__lock.release()
+        return records
+

@@ -2,7 +2,8 @@ import time
 import inverter
 import energydb
 import threading
-from flask import Flask
+from flask import Flask, request
+from datetime import datetime, date
 
 """
 TODO
@@ -39,11 +40,19 @@ def collect_process_data():
 #
 @app.route("/")
 def index():
-    data = collect_data()
-    return str(data)
+    req_date = request.args.get('date')
+    if req_date == None:
+        return "No date selected"
 
-def collect_data():
-    return db.get_data()
+    try:
+        date_obj = datetime.strptime(req_date, '%d-%m-%Y')
+        datetime_min_obj = datetime.combine(date_obj, datetime.min.time())
+        datetime_max_obj = datetime.combine(date_obj, datetime.max.time())
+    except:
+        return "Invalid date format"
+
+    data = db.get_data_by_date(datetime_min_obj, datetime_max_obj)
+    return str(data)
 
 ###############################################################################
 
