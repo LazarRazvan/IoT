@@ -21,7 +21,7 @@ class EnergyDB(object):
         return EnergyDB.__singleton
 
     def __init__(self):
-        """ Connect to data base and create table """
+        """ Connect to data base and create table for inverter """
         # Singleton
         if EnergyDB.__singleton != None:
             raise Exception("Singleton error!")
@@ -32,7 +32,7 @@ class EnergyDB(object):
 
         # Create table
         self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS InverterEnergy (
+            CREATE TABLE IF NOT EXISTS InverterPower (
             active_power REAL,
             timestamp DATETIME
         )
@@ -44,38 +44,32 @@ class EnergyDB(object):
         """ Close data base connection """
         self.connection.close()
 
-    def insert_data(self, data_tuple):
-        """ Insert inverter records to data base """
+    def insert_inverter_data(self, data_dict):
+        """ Insert inverter record to data base and set timestamp """
         self.__lock.acquire()
 
+        record_datetime = datetime.now().replace(microsecond=0)
         self.cursor.execute("""
-            INSERT INTO InverterEnergy (active_power, timestamp)
+            INSERT INTO InverterPower (active_power, timestamp)
             VALUES (?, ?)
-            """, (data_tuple[0], data_tuple[1])
+            """, (data_dict['active_power'], record_datetime)
         )
+        self.__lock.release()
+
         self.connection.commit()
 
-        self.__lock.release()
 
-    def get_data(self):
-        """ Print data base InverterEnergy records """
-        self.__lock.acquire()
-
-        records = self.cursor.execute("SELECT * FROM InverterEnergy").fetchall()
-
-        self.__lock.release()
-        return records
-
-    def get_data_by_date(self, datetime_min, datetime_max):
-        """ Print data base InverterEnergy records filtered by date"""
+    def get_inverter_data_by_date(self, datetime_min, datetime_max):
+        """ Print data base InverterPower records filtered by date"""
         self.__lock.acquire()
 
         current_date = date.today()
         records = self.cursor.execute(
-                        "SELECT * FROM InverterEnergy WHERE timestamp BETWEEN ? AND ?",
+                        "SELECT * FROM InverterPower WHERE timestamp BETWEEN ? AND ?",
                         (datetime_min,datetime_max)
                     ).fetchall()
 
         self.__lock.release()
+
         return records
 

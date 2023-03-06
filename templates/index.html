@@ -1,23 +1,52 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Records</title>
-  </head>
-  <body>
-    <h1>Records</h1>
-    <table>
-      <tr>
-        <th>ID</th>
-        <th>Value</th>
-        <th>Timestamp</th>
-      </tr>
-      {% for record in records %}
-      <tr>
-        <td>{{ record[0] }}</td>
-        <td>{{ record[1] }}</td>
-        <td>{{ record[2] }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-  </body>
+<head>
+	<title>Smart Heating</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+	<style>
+		canvas {
+			display: block;
+			margin: auto;
+			width: 500px;
+			height: 500px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Username: {{ user }}</h1>
+</body>
+<body>
+	<h1>Inverter Active Power</h1>
+	<canvas id="myChart"></canvas>
+	<script>
+		var labels = {{ labels | tojson }};
+		var data = {{ data | tojson }};
+		var ctx = document.getElementById('myChart').getContext('2d');
+		var myChart = new Chart(ctx, {
+			type: 'line',
+			data: {
+				labels: labels,
+				datasets: [{
+					label: 'Active Power',
+					data: data,
+					backgroundColor: 'rgba(60, 179, 112, 0.2) ',
+					borderColor: 'rgba(60, 179, 112, 1) ',
+					borderWidth: 2
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				scales: {
+					yAxes: [{
+						ticks: {
+							beginAtZero: true
+						}
+					}]
+				}
+			}
+		});
+	</script>
+</body>
 </html>
 

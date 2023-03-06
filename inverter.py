@@ -7,6 +7,7 @@ from datetime import datetime
 Read data from inverter.
 """
 class Inverter(object):
+    """ Specific Huawei Fusion Solar request URLS """
     login_url = 'https://eu5.fusionsolar.huawei.com/thirdData/login'
     logout_url = 'https://eu5.fusionsolar.huawei.com/thirdData/logout'
     station_list_url = 'https://eu5.fusionsolar.huawei.com/thirdData/getStationList'
@@ -24,7 +25,7 @@ class Inverter(object):
         }
 
         # Connection token (filled up in login step)
-        self.xsrf_token = "unset"
+        self.xsrf_token = None
 
     def login(self):
         """ Login to Huawei OpenApi """
@@ -67,15 +68,10 @@ class Inverter(object):
         if json_plant['success'] == False:
             raise ValueError("Inverter get stations list error!")
 
-        print("Plants number: %d\n" % (len(json_plant['data'])))
-        for station in json_plant['data']:
-            print(station)
-            print("\n")
+        return json_plant['data']
 
-    def get_devices_list(self, station_code):
-        """
-        TODO: Read station list for current user.
-        """
+    def get_station_devices_list(self, station_code):
+        """ Get devices list for a given station for user """
         rtime_obj = { "stationCodes" : station_code }
 
         # Send get station list request
@@ -92,15 +88,11 @@ class Inverter(object):
         if json_devices['success'] == False:
             raise ValueError("Inverter get devices list error!")
 
+        return json_devices['data']
 
-        print("Devices number: %d\n" % (len(json_devices['data'])))
-        for dev in json_devices['data']:
-            print(dev)
-            print("\n")
-
-    def get_plant_data(self, plant_code):
-        """ TODO: Return """
-        rtime_obj = { "stationCodes" : plant_code }
+    def get_station_data(self, station_code):
+        """ Get station dictionary data for a user """
+        rtime_obj = { "stationCodes" : station_code }
 
         # Send real time data request
         response = requests.post(
@@ -117,18 +109,17 @@ class Inverter(object):
             raise ValueError("Plant real time data error!")
 
         # Print values
-        print(json_rtime['data'])
-        for data_obj in json_rtime['data']:
-            map_obj = data_obj.get('dataItemMap')
-            print ("Day power : %s" % map_obj.get('day_power'))
-            print ("Month power : %s" % map_obj.get('month_power'))
-            print ("Total power : %s" % map_obj.get('total_power'))
-            print ("Health State : %s" % map_obj.get('real_health_state'))
+        data_map = json_rtime['data'][0].get('dataItemMap')
+        dict_data = {
+            "day_power" : data_map.get('day_power'),
+            "month_power" : data_map.get('month_power'),
+            "total_power" : data_map.get('total_power'),
+        }
 
-        return (map_obj.get('day_power'), map_obj.get('month_power'), map_obj.get('total_power'))
+        return dict_data
 
     def get_device_data(self, dev_id, dev_type):
-        """ TODO """
+        """ Get device dictionary data for a user (only active power) """
         rtime_obj = { "devIds" : dev_id, "devTypeId" : dev_type }
 
         # Send real time data request
@@ -145,4 +136,8 @@ class Inverter(object):
             raise ValueError("Device real time data error!")
 
         data_map = json_rtime['data'][0].get('dataItemMap')
-        return (data_map.get('active_power'), datetime.now())
+        dict_data = {
+            "active_power" : data_map.get('active_power'),
+        }
+
+        return dict_data
