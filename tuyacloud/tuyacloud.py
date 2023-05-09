@@ -23,6 +23,9 @@ https://iot.tuya.com/
 3) __create_string_to_sign (dunder method)
     Create the stringToSign required in signature computation
 
+4) __create_request_headers (dunder method)
+    Create the headers for a given request.
+
 4) command
     Send a custom command to a Tuya device using POST request
 
@@ -141,6 +144,23 @@ class TuyaCloud(object):
         return f'{method}\n{content_sha256}\n{headers_sorted}\n{url}'
 
 
+    def __create_request_headers(self, signature, t):
+        """
+        Create the headers for a given request.
+        https://developer.tuya.com/en/docs/iot/api-request?id=Ka4a8uuo1j4t4
+        """
+        return {
+            "client_id" : self.client_id,
+            "secret" : self.client_secret,
+            "sign" : signature,
+            "t" : t,
+            "access_token" : self.access_token,
+            "sign_method" : "HMAC-SHA256",
+            "Signature-Headers" : "area_id:call_id",
+            "area_id" : self.area_id,
+            "call_id" : self.call_id
+        }
+
     def command(self, content=None):
         """
         Send a command to a Tuya device.
@@ -164,19 +184,10 @@ class TuyaCloud(object):
 
         signature = self.__create_signature(t=time_now, stringToSign=stringToSign)
 
-        # Create get devices POST request header
-        headers = {
-            "client_id" : self.client_id,
-            "secret" : self.client_secret,
-            "sign" : signature,
-            "t" : time_now,
-            "access_token" : self.access_token,
-            "sign_method" : "HMAC-SHA256",
-            "Signature-Headers" : "area_id:call_id",
-            "area_id" : self.area_id,
-            "call_id" : self.call_id
-        }
+        # Create request headers
+        headers = self.__create_request_headers(signature, time_now)
 
+        # Send request
         response = requests.post(COMMAND_URL, headers = headers, data = content)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -218,16 +229,7 @@ class TuyaCloud(object):
         signature = self.__create_signature(t=time_now,stringToSign=stringToSign,refresh_token=True)
 
         # Create request headers
-        headers = {
-            "client_id" : self.client_id,
-            "secret" : self.client_secret,
-            "sign" : signature,
-            "t" : time_now,
-            "sign_method" : "HMAC-SHA256",
-            "Signature-Headers" : "area_id:call_id",
-            "area_id" : self.area_id,
-            "call_id" : self.call_id
-        }
+        headers = self.__create_request_headers(signature, time_now)
 
         # Send request
         response = requests.get(ACCESS_TOKEN_URL, headers = headers)
@@ -262,17 +264,7 @@ class TuyaCloud(object):
         signature = self.__create_signature(t=time_now, stringToSign=stringToSign)
 
         # Create request headers
-        headers = {
-            "client_id" : self.client_id,
-            "secret" : self.client_secret,
-            "sign" : signature,
-            "t" : time_now,
-            "access_token" : self.access_token,
-            "sign_method" : "HMAC-SHA256",
-            "Signature-Headers" : "area_id:call_id",
-            "area_id" : self.area_id,
-            "call_id" : self.call_id
-        }
+        headers = self.__create_request_headers(signature, time_now)
 
         # Send request
         response = requests.get(DEVICES_URL, headers = headers)
