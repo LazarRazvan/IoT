@@ -53,13 +53,13 @@ TUYA_ENDPOINTS = {
 EMPTY_BODY_ENCRYPTION = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 ################################################################################
-# Invalid token error code
+# Token expired error code
 # https://developer.tuya.com/en/docs/iot/error-code?id=K989ruxx88swc
 #
 # When this error code is returned by a request, the access token has to be
 # refreshed.
 ################################################################################
-INVALID_TOKEN = 1011
+INVALID_TOKEN = 1010
 
 class TuyaCloud(object):
     def __init__(self, client_region=None, client_id=None, client_secret=None, device_id=None):
@@ -187,7 +187,7 @@ class TuyaCloud(object):
                 self.refresh_access_token()
                 return self.command(content=content)
             else:
-                raise ValueError("Unable to get devices list (%s: %s)" %
+                raise ValueError("Unable to send command (%s: %s)" %
                                 (json_response['code'], json_response['msg']))
 
 
