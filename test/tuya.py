@@ -18,6 +18,10 @@ obj = TuyaSwitch(
                 device_id=DEVICE_ID
             )
 
+# Get switch_1 status
+print("Get switch_1 status...")
+print (obj.get_status(['switch_1']))
+
 # Turn switch_1 on
 print("Turning switch_1 on...")
 obj.turn_on(['switch_1'])
@@ -26,6 +30,14 @@ obj.turn_on(['switch_1'])
 print("Sleep 10 seconds...")
 time.sleep(10)
 
+# Get switch_1 status
+print("Get switch_1 status...")
+print (obj.get_status(['switch_1']))
+
 # Turn switch_1 off
 print("Turning switch_1 off...")
 obj.turn_off(['switch_1'])
+
+# Get switch_1 status
+print("Get switch_1 status...")
+print (obj.get_status(['switch_1']))

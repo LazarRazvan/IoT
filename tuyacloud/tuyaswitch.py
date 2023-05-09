@@ -22,6 +22,9 @@ Class has the following methods:
     3) turn_cusom
         Allow custom actions at once for multiple switches specified by name and
         vale (action) in the switch_dict input parameter.
+
+    4) get_status
+        Get switch device status.
 """
 
 class TuyaSwitch(TuyaCloud):
@@ -80,3 +83,27 @@ class TuyaSwitch(TuyaCloud):
         # Create request body
         switch_body = {'commands':[{'code': key, 'value': value} for key,value in switch_dict.items()]}
         super().command(content=json.dumps(switch_body))
+
+    def get_status(self, switch_list=None):
+        """
+        Get status of switch(es).
+
+        Parameters:
+            switch_list  : List with switches names to get status.
+
+        Ex:
+            obj.get_status(['switch_1','switch_2'])
+        """
+        if switch_list is None:
+            return
+
+        # Get status
+        device_status_dict = super().get_device_status()
+
+        # Create return
+        result_status = {}
+        for d in device_status_dict:
+            if d['code'] in switch_list:
+                result_status[d['code']] = d['value']
+
+        return result_status

@@ -26,13 +26,16 @@ https://iot.tuya.com/
 4) __create_request_headers (dunder method)
     Create the headers for a given request.
 
-4) command
+5) command
     Send a custom command to a Tuya device using POST request
 
-5) get_devices
+6) get_devices
     Return a list with all devices associated with current user.
 
-6) print_devices
+7) get_device_status
+    Return device status as json.
+
+7) print_devices
     Print the list returned by get_devices method
 """
 
@@ -105,6 +108,7 @@ class TuyaCloud(object):
             str = client_id + access_token + t + stringToSign
             sign = HMAC-SHA256(str, secret).toUpperCase()
         """
+
         if refresh_token:
             data = self.client_id + t + stringToSign
         else:
@@ -281,6 +285,50 @@ class TuyaCloud(object):
                                 (json_response['code'], json_response['msg']))
 
         return json_response['result']['devices']
+
+
+    def get_device_status(self):
+        """
+        Get single device status.
+        https://developer.tuya.com/en/docs/cloud/f76865b055?id=Kag2ycn1lvwpt
+        """
+        _URL = f'/v1.0/iot-03/devices/{self.device_id}/status'
+        time_now = str(int(time.time() * 1000))
+        DEVICE_STATUS_URL = f'{self.endpoint}{_URL}'
+
+        # Create signature (use encryption for empty body)
+        signature_headers = {
+            "area_id" : self.area_id,
+            "call_id" : self.call_id
+        }
+        stringToSign = self.__create_string_to_sign(
+                                        method  = "GET",
+                                        content = None,
+                                        headers = signature_headers,
+                                        url     = _URL
+                                    )
+
+        signature = self.__create_signature(t=time_now, stringToSign=stringToSign)
+
+        # Create request headers
+        headers = self.__create_request_headers(signature, time_now)
+
+        # Send request
+        response = requests.get(DEVICE_STATUS_URL, headers = headers)
+        json_response = json.loads(response.content)
+        if json_response['success'] == False:
+            # If token has expired, refresh it
+            errcode = int(json_response['code'])
+            if errcode == INVALID_TOKEN:
+                print("Access token expired! Refresh it!")
+                self.refresh_access_token()
+                return self.get_devices()
+            else:
+                raise ValueError("Unable to get device status (%s: %s)" %
+                                (json_response['code'], json_response['msg']))
+
+        return json_response['result']
+
 
     def print_devices(self):
         """
