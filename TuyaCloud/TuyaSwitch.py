@@ -3,7 +3,7 @@ import time
 import hmac
 import hashlib
 import requests
-from tuyacloud import TuyaCloud
+from TuyaCloud import TuyaCloud
 
 """
 TuyaSwitch is designed to control multi-button smart switches compatible with
