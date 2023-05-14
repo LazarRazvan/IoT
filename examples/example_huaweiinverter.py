@@ -20,10 +20,10 @@ obj = HuaweiInverter(
                     device_id=DEVICE_ID
                     )
 
-print("Inverter real-time data:")
-print(obj.real_time_data())
-
 current_time_ms = int(time.time() * 1000)
+
+print("Inverter real time active power:")
+print(obj.real_time_active_power())
 
 print("Inverter daily data:")
 print(obj.daily_data(current_time_ms))

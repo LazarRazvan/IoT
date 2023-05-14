@@ -73,3 +73,12 @@ class HuaweiInverter(HuaweiFusionSolar):
         """
         return super().device_yearly_data(self.device_type, collectTime,
                                         devIds = self.device_id)
+
+
+    def real_time_active_power(self):
+        """
+        Get real time inverter active power.
+        """
+        data = self.real_time_data()
+
+        return data[0]['dataItemMap']['active_power']
