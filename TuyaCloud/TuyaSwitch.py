@@ -28,9 +28,9 @@ Class has the following methods:
 """
 
 class TuyaSwitch(TuyaCloud):
-    def __init__(self, client_region=None, client_id=None, client_secret=None, device_id=None):
+    def __init__(self, client_region=None, client_id=None, client_secret=None, device_id=None, log_file=None):
         # Call constructor for TuyaCloud (to ensure API communication)
-        super().__init__(client_region, client_id, client_secret, device_id)
+        super().__init__(client_region, client_id, client_secret, device_id, log_file)
 
     def turn_on(self, switch_list=None):
         """

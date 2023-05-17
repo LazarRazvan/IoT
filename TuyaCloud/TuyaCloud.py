@@ -3,8 +3,10 @@ import uuid
 import hmac
 import time
 import hashlib
+import logging
 import requests
 
+from logging.handlers import RotatingFileHandler
 """
 TuyaCloud is designed as a main class for specific Tuya compatible devices
 (ex: TuyaSwitch) implementing the main methods for each device.
@@ -67,8 +69,15 @@ EMPTY_BODY_ENCRYPTION = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991
 ################################################################################
 INVALID_TOKEN = 1010
 
+################################################################################
+# Logger config.
+################################################################################
+LOGGER_LOG_LEVEL = logging.DEBUG    # Default logging level
+LOGGER_FILE_SIZE = 10000000         # 10 MB
+LOGGER_FILE_BACKUP = 5              # Number of backup files
+
 class TuyaCloud(object):
-    def __init__(self, client_region=None, client_id=None, client_secret=None, device_id=None):
+    def __init__(self, client_region=None, client_id=None, client_secret=None, device_id=None, log_file=None):
         """
         Connect to Tuya Iot Cloud
 
@@ -77,8 +86,10 @@ class TuyaCloud(object):
             client_id       : Client id (Cloud > "Project" > Authorization Ket > Access ID/Client ID)
             client_secret   : Client id (Cloud > "Project" > Authorization Ket > Access Secret/Client Secret)
             device_id       : Tuya device id (set by particular classes that inherit this class)
+            log_file        : Filename to be used for logging
         """
 
+        self.logger = None
         self.device_id = device_id
         self.client_id = client_id
         self.access_token = None
@@ -90,6 +101,26 @@ class TuyaCloud(object):
             raise ValueError("Invalid value for client region")
 
         self.endpoint = TUYA_ENDPOINTS[self.client_region]
+
+        # Configure logger (if given)
+        if log_file is not None:
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(LOGGER_LOG_LEVEL)
+
+            # Create a rotating file handler
+            file_handler = RotatingFileHandler(
+                                        log_file,
+                                        maxBytes=LOGGER_FILE_SIZE,
+                                        backupCount=LOGGER_FILE_SIZE
+                                            )
+
+            # Set the desired log level and format
+            file_handler.setLevel(LOGGER_LOG_LEVEL)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(formatter)
+
+            # Add the file handler to the logger
+            self.logger.addHandler(file_handler)
 
         # Get access token
         self.refresh_access_token()
@@ -170,6 +201,7 @@ class TuyaCloud(object):
         Send a command to a Tuya device.
         https://developer.tuya.com/en/docs/cloud/e2512fb901?id=Kag2yag3tiqn5
         """
+        _NAME = self.command.__name__
         _URL = f'/v1.0/iot-03/devices/{self.device_id}/commands'
         time_now = str(int(time.time() * 1000))
         COMMAND_URL = f'{self.endpoint}{_URL}'
@@ -191,14 +223,22 @@ class TuyaCloud(object):
         # Create request headers
         headers = self.__create_request_headers(signature, time_now)
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; data=[%s]" %
+                            (_NAME, COMMAND_URL, headers, content))
+
         # Send request
         response = requests.post(COMMAND_URL, headers = headers, data = content)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             # If token has expired, refresh it
             errcode = int(json_response['code'])
             if errcode == INVALID_TOKEN:
-                print("Access token expired! Refresh it!")
                 self.refresh_access_token()
                 return self.command(content=content)
             else:
@@ -211,6 +251,7 @@ class TuyaCloud(object):
         Get Tuya IoT access token (a signature to verify the identity)
         https://developer.tuya.com/en/docs/iot/new-singnature?id=Kbw0q34cs2e5g
         """
+        _NAME = self.refresh_access_token.__name__
         _URL = "/v1.0/token?grant_type=1"
         time_now = str(int(time.time() * 1000))
         ACCESS_TOKEN_URL = f'{self.endpoint}{_URL}'
@@ -235,11 +276,21 @@ class TuyaCloud(object):
         # Create request headers
         headers = self.__create_request_headers(signature, time_now)
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]" %
+                                (_NAME, ACCESS_TOKEN_URL, headers))
+
         # Send request
         response = requests.get(ACCESS_TOKEN_URL, headers = headers)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            raise ValueError("Access token refresh error (%s: %s)" % (json_response['code'], json_response['msg']))
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
+            raise ValueError("Access token refresh error (%s: %s)" %
+                                (json_response['code'], json_response['msg']))
 
         # Get access token
         self.access_token = json_response['result']['access_token']
@@ -249,6 +300,7 @@ class TuyaCloud(object):
         """
         Get Tuya devices for current user.
         """
+        _NAME = self.get_devices.__name__
         _URL = "/v1.0/iot-01/associated-users/devices"
         time_now = str(int(time.time() * 1000))
         DEVICES_URL = f'{self.endpoint}{_URL}'
@@ -270,14 +322,22 @@ class TuyaCloud(object):
         # Create request headers
         headers = self.__create_request_headers(signature, time_now)
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]" %
+                                (_NAME, DEVICES_URL, headers))
+
         # Send request
         response = requests.get(DEVICES_URL, headers = headers)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             # If token has expired, refresh it
             errcode = int(json_response['code'])
             if errcode == INVALID_TOKEN:
-                print("Access token expired! Refresh it!")
                 self.refresh_access_token()
                 return self.get_devices()
             else:
@@ -292,6 +352,7 @@ class TuyaCloud(object):
         Get single device status.
         https://developer.tuya.com/en/docs/cloud/f76865b055?id=Kag2ycn1lvwpt
         """
+        _NAME = self.get_device_status.__name__
         _URL = f'/v1.0/iot-03/devices/{self.device_id}/status'
         time_now = str(int(time.time() * 1000))
         DEVICE_STATUS_URL = f'{self.endpoint}{_URL}'
@@ -313,16 +374,24 @@ class TuyaCloud(object):
         # Create request headers
         headers = self.__create_request_headers(signature, time_now)
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]" %
+                                (_NAME, DEVICE_STATUS_URL, headers))
+
         # Send request
         response = requests.get(DEVICE_STATUS_URL, headers = headers)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.debug("[%s] response=[%s]" % (_NAME, json_response))
+
             # If token has expired, refresh it
             errcode = int(json_response['code'])
             if errcode == INVALID_TOKEN:
-                print("Access token expired! Refresh it!")
                 self.refresh_access_token()
-                return self.get_devices()
+                return self.get_device_status()
             else:
                 raise ValueError("Unable to get device status (%s: %s)" %
                                 (json_response['code'], json_response['msg']))
