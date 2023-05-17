@@ -1,6 +1,8 @@
 import json
+import logging
 import requests
 
+from logging.handlers import RotatingFileHandler
 """
 Northbound Interface Reference-V6 (SmartPVMS)
 
@@ -11,8 +13,15 @@ Documentation:
 https://support.huawei.com/enterprise/en/energy-common/imaster-neteco-pid-251993099
 """
 
+################################################################################
+# Logger config.
+################################################################################
+LOGGER_LOG_LEVEL = logging.DEBUG    # Default logging level
+LOGGER_FILE_SIZE = 10000000         # 10 MB
+LOGGER_FILE_BACKUP = 5              # Number of backup files
+
 class HuaweiFusionSolar(object):
-    def __init__(self, client_name=None, client_pass=None, client_domain=None):
+    def __init__(self, client_name=None, client_pass=None, client_domain=None, log_file=None):
         """
         Connect to Huawei SmartPVMS
 
@@ -20,15 +29,38 @@ class HuaweiFusionSolar(object):
             client_name     : Client username for SmartPVMS access.
             client_pass     : Client password for SmartPVMS access.
             client_domain   : Client domain name of the SmartPVMS system.
+            log_file        : Filename to be used for logging
         """
 
+        self.logger = None
         self.xsrf_token = None
         self.client_name = client_name
         self.client_pass = client_pass
         self.endpoint = f'https://{client_domain}'
 
+        # Configure logger (if given)
+        if log_file is not None:
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(LOGGER_LOG_LEVEL)
+
+            # Create a rotating file handler
+            file_handler = RotatingFileHandler(
+                                        log_file,
+                                        maxBytes=LOGGER_FILE_SIZE,
+                                        backupCount=LOGGER_FILE_SIZE
+                                            )
+
+            # Set the desired log level and format
+            file_handler.setLevel(LOGGER_LOG_LEVEL)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(formatter)
+
+            # Add the file handler to the logger
+            self.logger.addHandler(file_handler)
+
         # Perform login to get xsrf-token
         self.login()
+
 
     def login(self):
         """
@@ -44,6 +76,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/login'
+        _NAME = self.login.__name__
 
         # Request parameters
         data = {
@@ -51,10 +84,18 @@ class HuaweiFusionSolar(object):
             "systemCode" : self.client_pass
         }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; json=[%s]" % (_NAME, COMMAND_URL, data))
+
         # Send request
         response = requests.post(COMMAND_URL, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Login error (%s: %s)" % (json_response['failCode'], json_response['message']))
 
         # Set the xsrf-token
@@ -73,16 +114,25 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/logout'
+        _NAME = self.logout.__name__
 
         # Request parameters
         data = {
             "xsrfToken" : self.xsrf_token
         }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; json=[%s]" % (_NAME, COMMAND_URL, data))
+
         # Send request
         response = requests.post(COMMAND_URL, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Logout error (%s: %s)" % (json_response['failCode'], json_response['message']))
 
 
@@ -105,6 +155,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/stations'
+        _NAME = self.plant_list.__name__
 
         # Request parameters
         data = { "pageNo" : pageNo }
@@ -117,10 +168,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant list interfaceerror (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -143,6 +203,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getStationRealKpi'
+        _NAME = self.plant_real_time_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes }
@@ -150,10 +211,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant real-time data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -177,6 +247,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationHour'
+        _NAME = self.plant_list.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -184,10 +255,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant hourly data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -212,6 +292,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationDay'
+        _NAME = self.plant_daily_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -219,10 +300,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant daily data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -247,6 +337,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationMonth'
+        _NAME = self.plant_daily_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -254,10 +345,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant monthly data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -282,6 +382,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationYear'
+        _NAME = self.plant_daily_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -289,10 +390,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant yearly data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -315,6 +425,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevList'
+        _NAME = self.device_list.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes }
@@ -322,10 +433,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Plant daily data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -352,6 +472,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevRealKpi'
+        _NAME = self.device_list.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -367,10 +488,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Device real-time data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -401,6 +531,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevHistoryKpi'
+        _NAME = self.device_list.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -416,10 +547,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Device history data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -448,6 +588,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevKpiDay'
+        _NAME = self.device_daily_data.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -463,10 +604,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Device real-time data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -495,6 +645,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevKpiMonth'
+        _NAME = self.device_monthly_data.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -510,10 +661,19 @@ class HuaweiFusionSolar(object):
         # Create request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
             raise ValueError("Device monthly data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
@@ -542,6 +702,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevKpiYear'
+        _NAME = self.device_yearly_data.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -557,11 +718,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
+        # Log
+        if self.logger:
+            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
+                                (_NAME, COMMAND_URL, header, data))
+
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            raise ValueError("Device real-time data interface error (%s: %s)" %
+            # Log
+            if self.logger:
+                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
+
+            raise ValueError("Device yearly data interface error (%s: %s)" %
                         (json_response['failCode'], json_response['message']))
 
         return json_response['data']

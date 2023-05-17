@@ -19,7 +19,7 @@ DEVICE_TYPE = {
 }
 
 class HuaweiInverter(HuaweiFusionSolar):
-    def __init__(self, client_name=None, client_pass=None, client_domain=None, device_type=None, device_id=None):
+    def __init__(self, client_name=None, client_pass=None, client_domain=None, device_type=None, device_id=None, log_file=None):
         """
         Connect to Huawei SmartPVMS
 
@@ -29,6 +29,7 @@ class HuaweiInverter(HuaweiFusionSolar):
             client_domain   : Client domain name of the SmartPVMS system.
             device_type     : Inverter device type ("string" | "residential")
             device_id       : Inverter device id.
+            log_file        : Filename to be used for logging
         """
         self.device_id = device_id
         self.device_type = device_type
@@ -40,7 +41,7 @@ class HuaweiInverter(HuaweiFusionSolar):
         self.device_type = DEVICE_TYPE[device_type]
 
         # Call constructor for HuaweiFusionSolar
-        super().__init__(client_name, client_pass, client_domain)
+        super().__init__(client_name, client_pass, client_domain, log_file)
 
 
     def real_time_data(self):
