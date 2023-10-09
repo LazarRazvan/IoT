@@ -3,6 +3,7 @@ import time
 sys.path.append('../TuyaCloud')
 
 from TuyaSwitch import TuyaSwitch
+from TuyaCloud import TuyaCloud
 
 # TODO: add client_id, client_secret and device_id
 CLIENT_REGION = 'TODO'

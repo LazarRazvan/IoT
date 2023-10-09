@@ -9,6 +9,7 @@ from HuaweiInverter import HuaweiInverter
 CLIENT_NAME = 'TODO'
 CLIENT_PASS = 'TODO'
 CLIENT_DOMAIN = 'TODO'
+PLANT_ID = 'TODO'
 DEVICE_ID = 'TODO'
 DEVICE_TYPE = 'TODO'    # residential or string
 
