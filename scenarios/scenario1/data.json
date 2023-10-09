@@ -1,0 +1,15 @@
+{
+	"app_user_name" : "TODO",
+	"app_huawei_inverter_name" : "TODO",
+	"app_tuya_device_name" : "TODO",
+	"app_tuya_client_region" : "TODO",
+	"app_tuya_client_id" : "TODO",
+	"app_tuya_client_secret" : "TODO",
+	"app_tuya_device_id" : "TODO",
+	"app_tuya_switch_name" : "TODO",
+	"app_huawei_client_name" : "TODO",
+	"app_huawei_client_pass" : "TODO",
+	"app_huawei_client_domain" : "TODO",
+	"app_huawei_device_id" : "TODO",
+	"app_huawei_device_type" : "TODO"
+}
