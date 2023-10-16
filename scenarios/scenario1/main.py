@@ -2,6 +2,7 @@ import sys
 import time
 import json
 import threading
+from datetime import datetime
 from flask import Flask, request, render_template
 
 # Append path for TuyaCloud and HuaweiFusionSolar
@@ -55,10 +56,10 @@ def application_init(file):
     #######################################################
     app_data = {
         'app_state' : False,
-        'app_error' : None,
         'app_config_trigger_value' : None,
         'app_status_active_power' : None,
         'app_status_switch_state' : None,
+        'app_status_datetime' : None,
     }
 
     #######################################################
@@ -132,28 +133,50 @@ def application_task():
         #######################################################
         app_lock.acquire()
         #
+        app_data['app_status_datetime'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        #
         try:
             app_data['app_status_active_power'] = inverter_obj.real_time_active_power()
         except ValueError as e:
-            app_data['app_error'] = str(e)
+            app_data['app_status_active_power'] = None
+            print("Read active power error: %s" % str(e))
             app_lock.release()
-            application_stop()
             return
         #
         try:
             app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
         except ValueError as e:
-            app_data['app_error'] = str(e)
+            app_data['app_status_switch_state'] = None
+            print("Read switch state error: %s" % str(e))
             app_lock.release()
-            application_stop()
             return
         #
         if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
-            tuya_obj.turn_on(['switch_1'])
-            app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
+            #
+            # Turn on switch
+            #
+            try:
+                tuya_obj.turn_on(['switch_1'])
+            except ValueError as e:
+                app_data['app_status_switch_state'] = None
+                print("Turn switch on error: %s" % str(e))
+                app_lock.release()
+                return
+
+            app_data['app_status_switch_state'] = True
         else:
-            tuya_obj.turn_off(['switch_1'])
-            app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
+            #
+            # Turn off switch
+            #
+            try:
+                tuya_obj.turn_off(['switch_1'])
+            except ValueError as e:
+                print("Turn switch off error: %s" % str(e))
+                app_data['app_status_switch_state'] = None
+                app_lock.release()
+                return
+
+            app_data['app_status_switch_state'] = False
         #
         app_lock.release()
 
@@ -177,17 +200,20 @@ def application_start(post_data):
     global tuya_obj
     global inverter_obj
 
+    #
+    print()
+    print("Start application ...")
+    print()
+
     #######################################################
     # Update application data
     #######################################################
-    print("Application start...")
     app_data['app_state'] = True
     app_data['app_config_trigger_value'] = post_data['app_config_trigger_value']
 
     #######################################################
     # Start working thread
     #######################################################
-    print("Start thread...")
     try:
         if app_thread is None or not app_thread.is_alive():
             # Create and start the task thread
@@ -195,8 +221,6 @@ def application_start(post_data):
             app_thread = threading.Thread(target=application_task)
             app_thread.start()
     except:
-        # TODO
-        app_data['app-error'] = "Thread Start Error"
         return
 
 # Lock is acquired when function is called
@@ -206,19 +230,26 @@ def application_stop():
     global app_data
     global stop_event
 
+    #
+    print()
+    print("Stop application ...")
+    print()
+
     #######################################################
     # Reset application data
     #######################################################
-    print("Application stop...")
     app_data['app_state'] = False
     app_data['app_config_trigger_value'] = None
     app_data['app_status_active_power'] = None
     app_data['app_status_switch_state'] = None
+    app_data['app_status_datetime'] = None
 
-    print("Turn off the switch")
-    tuya_obj.turn_off(['switch_1'])
+    try:
+        tuya_obj.turn_off(['switch_1'])
+    except ValueError as e:
+        print("Turn switch off error: %s" % str(e))
+        app_data['app_status_switch_state'] = None
 
-    print("Stop thread...")
     stop_event.set()
 
 
@@ -227,7 +258,6 @@ def application_stop():
 ###############################################################################
 @app.after_request
 def add_cache_control(response):
-    print("Function is called")
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -242,14 +272,10 @@ def app_state_change():
     post_data = request.get_json()
     post_app_state = post_data['app_state']
 
-    # TODO: Debug print
-    print("Post data: %s" % (post_data))
-
     # Error if trying to turn on an application already turned on
     app_lock.acquire()
     if post_app_state == True and app_data['app_state'] == True:
         app_lock.release()
-        print("Error, application is already running...")
         return "Error, application is already running"
 
     try:
@@ -262,9 +288,6 @@ def app_state_change():
     finally:
         app_lock.release()
 
-    # TODO: Debug print
-    print("App data: %s" % (app_data))
-
     return "Success"
 
 @app.route('/', methods=['GET'])
@@ -275,8 +298,6 @@ def index():
     app_lock.acquire()
     data = app_data
     app_lock.release()
-
-    print("Get data: %s" % (data))
 
     return render_template('index.html', data = data)
 

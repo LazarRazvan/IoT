@@ -72,6 +72,8 @@ body {
 .data_container_data_cp input,
 .data_container_data_state label,
 .data_container_data_state input,
+.data_container_data_datetime label,
+.data_container_data_datetime input,
 .config_container_data_ap label,
 .config_container_data_ap input {
 	display: block;
@@ -79,6 +81,7 @@ body {
 
 .data_container_data_cp label,
 .data_container_data_state label,
+.data_container_data_datetime label,
 .config_container_data_ap label {
 	text-transform: uppercase;
 	font-size: var(--font-size);
@@ -89,6 +92,7 @@ body {
 
 .data_container_data_cp input,
 .data_container_data_state input,
+.data_container_data_datetime input,
 .config_container_data_ap input {
 	margin-top: 0.4rem;
 	width: 100%;
@@ -112,6 +116,7 @@ body {
 
 .data_container_data_cp,
 .data_container_data_state,
+.data_container_data_datetime,
 .config_container_data_ap {
 	margin-bottom: 2rem;
 }

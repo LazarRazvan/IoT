@@ -15,7 +15,7 @@
 					<form class="config_container_data">
 						<!-- Application config active power -->
 						<div class="config_container_data_ap">
-							<label for="text">Active Power Trigger (kWh)</label>
+							<label for="text">Active Power Trigger (kW)</label>
 							<input type="text" id="app-config-active-power" value="{{ data.app_config_trigger_value }}">
 						</div>
 						<!-- Application config state change -->
@@ -34,13 +34,18 @@
 					<form class="data_container_data" id="data">
 						<!-- Application data current power -->
 						<div class="data_container_data_cp" id="current_power">
-							<label for="text">Current Active Power (kWh)</label>
+							<label for="text">Current Active Power (kW)</label>
 							<input type="text" id="app-data-crt-power" value="{{ data.app_status_active_power }}"readonly>
 						</div>
 						<!-- Application data state -->
 						<div class="data_container_data_state" id="switch_state">
 							<label for="text">Switch State</label>
 							<input type="text" id="app-data-switch-state" value="{{ data.app_status_switch_state }}"readonly>
+						</div>
+						<!-- Application data datetime -->
+						<div class="data_container_data_datetime" id="datetime">
+							<label for="text">Last updated</label>
+							<input type="text" id="app-data-datetime" value="{{ data.app_status_datetime }}"readonly>
 						</div>
 					</form>
 				</div>
