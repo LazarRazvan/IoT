@@ -1,0 +1,41 @@
+<!--
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+		<script src="{{ url_for('static', filename='script.js') }}"></script>
+		<title>Bucuresti Home</title>
+	</head>
+	<body>
+		<div class="img-div">
+			<style>
+				body {
+					background-image: url('/static/img/background.png');
+					background-size: cover;
+					background-repeat: no-repeat;
+				}
+			</style>
+			<button class="button" id="living" onClick="genericAction()"></button>
+		</div>
+	</body>
+</html>
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+	<script src="{{ url_for('static', filename='script.js') }}"></script>
+	<title>Apartament Bucuresti</title>
+</head>
+<body>
+	<div class="container">
+		<img src="/static/img/background.png" alt="Snow" style="width:100%">
+		<button id="living" class="lights" onClick="genericAction()"></button>
+		<button id="bucatarie" class="lights" onClick="genericAction()"></button>
+		<button id="hol" class="lights" onClick="genericAction()"></button>
+		<button id="baie1" class="lights" onClick="genericAction()"></button>
+		<button id="baie2" class="lights" onClick="genericAction()"></button>
+	</div>
+</body>
+</html>

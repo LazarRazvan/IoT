@@ -62,4 +62,7 @@ The [Tuya IoT Development Platform](https://iot.tuya.com/) is an ecosystem dedic
 TODO
 
 ## Scenarios
-TODO
+
+### Scenario2
+
+This project combines Internet of Things (IoT) technology with a user-friendly web interface to provide a seamless home automation experience. With a visual representation of your home plan, you can easily control and monitor lights in different rooms by simply clicking on them.
