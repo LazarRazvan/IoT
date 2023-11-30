@@ -135,48 +135,50 @@ def application_task():
         #
         app_data['app_status_datetime'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         #
+        # Read active power
+        #
         try:
             app_data['app_status_active_power'] = inverter_obj.real_time_active_power()
+            #
+            # Read switch state
+            #
+            try:
+                app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
+                #
+                # Turn on/off switch
+                #
+                print("active power: %f" % float(app_data['app_status_active_power']))
+                print("trigger power: %f" % float(app_data['app_config_trigger_value']))
+
+                if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
+                    #
+                    # Turn on switch
+                    #
+                    try:
+                        tuya_obj.turn_on(['switch_1'])
+                        app_data['app_status_switch_state'] = True
+                    except ValueError as e:
+                        app_data['app_status_switch_state'] = None
+                        print("Turn switch on error: %s" % str(e))
+                else:
+                    #
+                    # Turn off switch
+                    #
+                    try:
+                        tuya_obj.turn_off(['switch_1'])
+                        app_data['app_status_switch_state'] = False
+                    except ValueError as e:
+                        print("Turn switch off error: %s" % str(e))
+                        app_data['app_status_switch_state'] = None
+
+            except ValueError as e:
+                app_data['app_status_switch_state'] = None
+                print("Read switch state error: %s" % str(e))
+
         except ValueError as e:
             app_data['app_status_active_power'] = None
             print("Read active power error: %s" % str(e))
-            app_lock.release()
-            return
-        #
-        try:
-            app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
-        except ValueError as e:
-            app_data['app_status_switch_state'] = None
-            print("Read switch state error: %s" % str(e))
-            app_lock.release()
-            return
-        #
-        if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
-            #
-            # Turn on switch
-            #
-            try:
-                tuya_obj.turn_on(['switch_1'])
-            except ValueError as e:
-                app_data['app_status_switch_state'] = None
-                print("Turn switch on error: %s" % str(e))
-                app_lock.release()
-                return
 
-            app_data['app_status_switch_state'] = True
-        else:
-            #
-            # Turn off switch
-            #
-            try:
-                tuya_obj.turn_off(['switch_1'])
-            except ValueError as e:
-                print("Turn switch off error: %s" % str(e))
-                app_data['app_status_switch_state'] = None
-                app_lock.release()
-                return
-
-            app_data['app_status_switch_state'] = False
         #
         app_lock.release()
 
@@ -303,4 +305,4 @@ def index():
 
 if __name__ == '__main__':
     application_init('data.json')
-    app.run()
+    app.run(host="0.0.0.0")

@@ -63,6 +63,10 @@ TODO
 
 ## Scenarios
 
+### Scenario1
+
+This project focuses on maximizing the use of solar energy by intelligently managing power consumption. By monitoring the active power reported by a Huawei inverter, this system triggers a smart switch to heat up water only when there is sufficient solar energy production, ensuring minimal reliance on the grid.
+
 ### Scenario2
 
 This project combines Internet of Things (IoT) technology with a user-friendly web interface to provide a seamless home automation experience. With a visual representation of your home plan, you can easily control and monitor lights in different rooms by simply clicking on them.
