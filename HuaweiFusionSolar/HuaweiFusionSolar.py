@@ -90,12 +90,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Login error (%s)" % json_response)
 
         # Set the xsrf-token
@@ -127,12 +128,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Logout error (%s)" % json_response)
 
 
@@ -175,12 +177,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant list interface error (%s)" % json_response)
 
         return json_response['data']
@@ -217,12 +220,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant real-time data interface error (%s)" %
                         json_response)
 
@@ -261,12 +265,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant hourly data interface error (%s)" %
                         json_response)
 
@@ -306,12 +311,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant daily data interface error (%s)" %
                         json_response)
 
@@ -351,12 +357,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant monthly data interface error (%s)" %
                         json_response)
 
@@ -396,12 +403,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant yearly data interface error (%s)" %
                         json_response)
 
@@ -439,12 +447,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Plant daily data interface error (%s)" %
                         json_response)
 
@@ -494,12 +503,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Device real-time data interface error (%s)" %
                         json_response)
 
@@ -553,12 +563,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Device history data interface error (%s)" %
                         json_response)
 
@@ -610,12 +621,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Device real-time data interface error (%s)" %
                         json_response)
 
@@ -667,12 +679,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Device monthly data interface error (%s)" %
                         json_response)
 
@@ -724,12 +737,13 @@ class HuaweiFusionSolar(object):
 
         # Send request
         response = requests.post(COMMAND_URL, headers=header, json=data)
+
+        # Log
+        if self.logger:
+            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+
         json_response = json.loads(response.content)
         if json_response['success'] == False:
-            # Log
-            if self.logger:
-                self.logger.error("[%s] response=[%s]" % (_NAME, json_response))
-
             raise ValueError("Device yearly data interface error (%s)" %
                         json_response)
 
