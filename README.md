@@ -58,9 +58,6 @@ The [Tuya IoT Development Platform](https://iot.tuya.com/) is an ecosystem dedic
 - turn_custom
 - get_status
 
-## Examples
-TODO
-
 ## Scenarios
 
 ### Scenario1
