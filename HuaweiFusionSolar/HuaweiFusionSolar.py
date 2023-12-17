@@ -93,7 +93,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -131,7 +131,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -180,7 +180,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -223,7 +223,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -268,7 +268,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -314,7 +314,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -360,7 +360,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -406,7 +406,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -450,7 +450,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -506,7 +506,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -566,7 +566,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -624,7 +624,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -682,7 +682,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -740,7 +740,7 @@ class HuaweiFusionSolar(object):
 
         # Log
         if self.logger:
-            self.logger.error("[%s] response=[%s]" % (_NAME, response))
+            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
