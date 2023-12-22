@@ -114,6 +114,8 @@ def application_task():
     global tuya_obj
     global inverter_obj
 
+    huawei_null_bug_retries = 0
+
     while not stop_event.is_set():
         #######################################################
         # With lock acquired, read inverter real time active
@@ -134,51 +136,78 @@ def application_task():
         app_lock.acquire()
         #
         app_data['app_status_datetime'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+
         #
-        # Read active power
+        # Read inverter active power
         #
         try:
             app_data['app_status_active_power'] = inverter_obj.real_time_active_power()
-            #
-            # Read switch state
-            #
-            try:
-                app_data['app_status_switch_state'] = tuya_obj.get_status(['switch_1'])['switch_1']
-                #
-                # Turn on/off switch
-                #
-                print("active power: %f" % float(app_data['app_status_active_power']))
-                print("trigger power: %f" % float(app_data['app_config_trigger_value']))
+            ##################################################################
+            # TODO
+            # This is a bug where huawei sends null values without any error
+            # or failCode being set. Allow application to perfor 3 retries
+            # before stopping it.
+            ##################################################################
+            if app_data['app_status_active_power'] is None:
+                huawei_null_bug_retries += 1
+                print("Invalid inverter active power reported; retries(%d)" % huawei_null_bug_retries)
 
-                if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
-                    #
-                    # Turn on switch
-                    #
-                    try:
-                        tuya_obj.turn_on(['switch_1'])
-                        app_data['app_status_switch_state'] = True
-                    except ValueError as e:
-                        app_data['app_status_switch_state'] = None
-                        print("Turn switch on error: %s" % str(e))
+                if (huawei_null_bug_retries == 3):
+                    app_lock.release()
+                    application_stop()
+                    return
                 else:
-                    #
-                    # Turn off switch
-                    #
-                    try:
-                        tuya_obj.turn_off(['switch_1'])
-                        app_data['app_status_switch_state'] = False
-                    except ValueError as e:
-                        print("Turn switch off error: %s" % str(e))
-                        app_data['app_status_switch_state'] = None
-
-            except ValueError as e:
-                app_data['app_status_switch_state'] = None
-                print("Read switch state error: %s" % str(e))
+                    app_lock.release()
+                    stop_event.wait(TASK_SLEEP_TIME)
+                    continue
+            else:
+                huawei_null_bug_retries = 0;
 
         except ValueError as e:
-            app_data['app_status_active_power'] = None
             print("Read active power error: %s" % str(e))
+            app_lock.release()
+            application_stop()
+            return
 
+        #
+        #
+        #
+        print("active power: %f" % float(app_data['app_status_active_power']))
+        print("trigger power: %f" % float(app_data['app_config_trigger_value']))
+
+        #
+        # Update switch state
+        #
+        if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
+            #
+            # Turn on switch
+            #
+            print("Turning switch on...")
+            try:
+                tuya_obj.turn_on(['switch_1'])
+                app_data['app_status_switch_state'] = True
+            except ValueError as e:
+                print("Turn switch on error: %s" % str(e))
+                app_lock.release()
+                application_stop()
+                return
+        else:
+            print("Turning switch off...")
+            #
+            # Turn off switch
+            #
+            try:
+                tuya_obj.turn_off(['switch_1'])
+                app_data['app_status_switch_state'] = False
+            except ValueError as e:
+                print("Turn switch off error: %s" % str(e))
+                app_lock.release()
+                application_stop()
+                return
+
+        #
+        #
         #
         app_lock.release()
 
