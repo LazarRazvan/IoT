@@ -20,6 +20,16 @@ LOGGER_LOG_LEVEL = logging.DEBUG    # Default logging level
 LOGGER_FILE_SIZE = 10000000         # 10 MB
 LOGGER_FILE_BACKUP = 5              # Number of backup files
 
+
+################################################################################
+# Expired xsrf-token fail code
+#
+# When this error code is returned by a request, the xsrf-token has to be
+# refreshed by performing login method
+################################################################################
+EXPIRED_TOKEN = 305
+
+
 class HuaweiFusionSolar(object):
     def __init__(self, client_name=None, client_pass=None, client_domain=None, log_file=None):
         """
@@ -62,6 +72,11 @@ class HuaweiFusionSolar(object):
         self.login()
 
 
+    def __log_debug(self, format_str, *args):
+        if self.logger:
+            message = format_str % args
+            self.logger.debug(message)
+
     def login(self):
         """
         Login and extract XSRF-TOKEN for next requests.
@@ -84,16 +99,10 @@ class HuaweiFusionSolar(object):
             "systemCode" : self.client_pass
         }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; json=[%s]" % (_NAME, COMMAND_URL, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; json=[%s]", _NAME, COMMAND_URL, data)
         response = requests.post(COMMAND_URL, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -122,16 +131,10 @@ class HuaweiFusionSolar(object):
             "xsrfToken" : self.xsrf_token
         }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; json=[%s]" % (_NAME, COMMAND_URL, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; json=[%s]", _NAME, COMMAND_URL, data)
         response = requests.post(COMMAND_URL, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
         if json_response['success'] == False:
@@ -170,21 +173,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_list(pageNo, startTime, endTime)
+
         if json_response['success'] == False:
-            raise ValueError("Plant list interface error (%s)" % json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -213,22 +215,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_real_time_data(stationCodes)
+
         if json_response['success'] == False:
-            raise ValueError("Plant real-time data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -258,22 +258,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_hourly_data(stationCodes, collectTime)
+
         if json_response['success'] == False:
-            raise ValueError("Plant hourly data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -304,22 +302,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_daily_data(stationCodes, collectTime)
+
         if json_response['success'] == False:
-            raise ValueError("Plant daily data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -350,22 +346,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_monthly_data(stationCodes, collectTime)
+
         if json_response['success'] == False:
-            raise ValueError("Plant monthly data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -396,22 +390,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.plant_yearly_data(stationCodes, collectTime)
+
         if json_response['success'] == False:
-            raise ValueError("Plant yearly data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -440,22 +432,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_list(stationCodes)
+
         if json_response['success'] == False:
-            raise ValueError("Plant daily data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -496,22 +486,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_real_time_data(devTypeId, devIds, sns)
+
         if json_response['success'] == False:
-            raise ValueError("Device real-time data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -556,22 +544,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_history_data(devTypeId, startTime, endTime, devIds, sns)
+
         if json_response['success'] == False:
-            raise ValueError("Device history data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -614,22 +600,20 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_daily_data(devTypeId, collectTime, devIds, sns)
+
         if json_response['success'] == False:
-            raise ValueError("Device real-time data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -672,22 +656,20 @@ class HuaweiFusionSolar(object):
         # Create request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_monthly_data(devTypeId, collectTime, devIds, sns)
+
         if json_response['success'] == False:
-            raise ValueError("Device monthly data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
 
@@ -730,21 +712,19 @@ class HuaweiFusionSolar(object):
         # Request headers
         header = { "XSRF-TOKEN" : self.xsrf_token }
 
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] url=[%s]; headers=[%s]; json=[%s]" %
-                                (_NAME, COMMAND_URL, header, data))
-
         # Send request
+        self.__log_debug("[%s] url=[%s]; headers=[%s]; json=[%s]", _NAME,
+                        COMMAND_URL, header, data)
         response = requests.post(COMMAND_URL, headers=header, json=data)
-
-        # Log
-        if self.logger:
-            self.logger.debug("[%s] response=[%s]" % (_NAME, response.content))
+        self.__log_debug("[%s] response=[%s]", _NAME, response.content)
 
         json_response = json.loads(response.content)
+        # Check if xsrf-token has to be refreshed
+        if json_response['failCode'] == EXPIRED_TOKEN:
+            self.login()
+            return self.device_yearly_data(devTypeId, collectTime, devIds, sns)
+
         if json_response['success'] == False:
-            raise ValueError("Device yearly data interface error (%s)" %
-                        json_response)
+            raise ValueError("%s: (%s)" % (_NAME, json_response))
 
         return json_response['data']
