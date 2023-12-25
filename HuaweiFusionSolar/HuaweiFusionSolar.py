@@ -250,7 +250,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationHour'
-        _NAME = self.plant_list.__name__
+        _NAME = self.plant_hourly_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -342,7 +342,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationMonth'
-        _NAME = self.plant_daily_data.__name__
+        _NAME = self.plant_monthly_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -388,7 +388,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getKpiStationYear'
-        _NAME = self.plant_daily_data.__name__
+        _NAME = self.plant_yearly_data.__name__
 
         # Request parameters
         data = { "stationCodes" : stationCodes, "collectTime" : collectTime }
@@ -480,7 +480,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevRealKpi'
-        _NAME = self.device_list.__name__
+        _NAME = self.device_real_time_data.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
@@ -540,7 +540,7 @@ class HuaweiFusionSolar(object):
         """
         # Request URL
         COMMAND_URL = f'{self.endpoint}/thirdData/getDevHistoryKpi'
-        _NAME = self.device_list.__name__
+        _NAME = self.device_history_data.__name__
 
         # Either sns or devIds must be set
         if devIds is None and sns is None:
