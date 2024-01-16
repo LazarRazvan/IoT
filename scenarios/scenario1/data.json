@@ -11,5 +11,8 @@
 	"app_huawei_client_pass" : "TODO",
 	"app_huawei_client_domain" : "TODO",
 	"app_huawei_device_id" : "TODO",
-	"app_huawei_device_type" : "TODO"
+	"app_huawei_device_type" : "TODO",
+	"app_notification_sender_mail" : "TODO",
+	"app_notification_sender_pass" : "TODO",
+	"app_notification_recipients" : ["TODO", "TODO"]
 }

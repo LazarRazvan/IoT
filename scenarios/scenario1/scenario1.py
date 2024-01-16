@@ -11,6 +11,7 @@ sys.path.append('../../HuaweiFusionSolar')
 
 from TuyaSwitch import TuyaSwitch
 from HuaweiInverter import HuaweiInverter
+from notification import Notification
 
 """
 Scenario: TODO
@@ -34,6 +35,8 @@ tuya_obj = None
 #
 inverter_obj = None
 #
+notification_obj = None
+#
 TASK_SLEEP_TIME = 300
 #
 TUYA_LOG_FILE="tuya.log"
@@ -43,9 +46,11 @@ HUAWEI_LOG_FILE="huawei.log"
 ###############################################################################
 
 def application_init(file):
+    global app
     global app_data
     global tuya_obj
     global inverter_obj
+    global notification_obj
 
     print()
     print("Initialize application ...")
@@ -102,6 +107,28 @@ def application_init(file):
                         device_id       = data['app_huawei_device_id'],
                         log_file        = HUAWEI_LOG_FILE
                         )
+        #
+        #######################################################
+        # Initialize notification object
+        #######################################################
+        print()
+        print("Configure notification...")
+        print()
+        app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+        app.config['MAIL_PORT'] = 587
+        app.config['MAIL_USERNAME'] = data['app_notification_sender_mail']
+        app.config['MAIL_PASSWORD'] = data['app_notification_sender_pass']
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USE_SSL'] = False
+
+        print()
+        print("Initialize notification...")
+        print()
+        notification_obj = Notification(
+                        flask_app   = app,
+                        sender      = data['app_notification_sender_mail'],
+                        recipients  = data['app_notification_recipients'],
+                        )
     #
     print()
     print("Application initialized successfully!")
@@ -113,8 +140,7 @@ def application_task():
     global app_lock
     global tuya_obj
     global inverter_obj
-
-    huawei_null_bug_retries = 0
+    global notification_obj
 
     while not stop_event.is_set():
         #######################################################
@@ -146,29 +172,21 @@ def application_task():
             ##################################################################
             # TODO
             # This is a bug where huawei sends null values without any error
-            # or failCode being set. Allow application to perfor 3 retries
-            # before stopping it.
+            # or failCode being set.
             ##################################################################
             if app_data['app_status_active_power'] is None:
-                huawei_null_bug_retries += 1
-                print("Invalid inverter active power reported; retries(%d)" % huawei_null_bug_retries)
-
-                if (huawei_null_bug_retries == 3):
-                    app_lock.release()
-                    application_stop()
-                    return
-                else:
-                    app_lock.release()
-                    stop_event.wait(TASK_SLEEP_TIME)
-                    continue
-            else:
-                huawei_null_bug_retries = 0;
+                notification_obj.inverter("Active power is null")
+                print("Null active power reported by inverter!")
+                app_lock.release()
+                stop_event.wait(TASK_SLEEP_TIME)
+                continue
 
         except ValueError as e:
+            notification_obj.inverter(str(e))
             print("Read active power error: %s" % str(e))
             app_lock.release()
-            application_stop()
-            return
+            stop_event.wait(TASK_SLEEP_TIME)
+            continue
 
         #
         #
@@ -188,10 +206,11 @@ def application_task():
                 tuya_obj.turn_on(['switch_1'])
                 app_data['app_status_switch_state'] = True
             except ValueError as e:
+                notification_obj.switch(str(e))
                 print("Turn switch on error: %s" % str(e))
                 app_lock.release()
-                application_stop()
-                return
+                stop_event.wait(TASK_SLEEP_TIME)
+                continue
         else:
             print("Turning switch off...")
             #
@@ -201,10 +220,11 @@ def application_task():
                 tuya_obj.turn_off(['switch_1'])
                 app_data['app_status_switch_state'] = False
             except ValueError as e:
+                notification_obj.switch(str(e))
                 print("Turn switch off error: %s" % str(e))
                 app_lock.release()
-                application_stop()
-                return
+                stop_event.wait(TASK_SLEEP_TIME)
+                continue
 
         #
         #
@@ -230,6 +250,7 @@ def application_start(post_data):
     global stop_event
     global tuya_obj
     global inverter_obj
+    global notification_obj
 
     #
     print()
@@ -254,12 +275,19 @@ def application_start(post_data):
     except:
         return
 
+    #######################################################
+    # Send notification
+    #######################################################
+    notification_obj.application_start(app_data['app_config_trigger_value'])
+
+
 # Lock is acquired when function is called
 def application_stop():
     global app_lock
     global tuya_obj
     global app_data
     global stop_event
+    global notification_obj
 
     #
     print()
@@ -278,10 +306,16 @@ def application_stop():
     try:
         tuya_obj.turn_off(['switch_1'])
     except ValueError as e:
+        notification_obj.switch(str(e))
         print("Turn switch off error: %s" % str(e))
         app_data['app_status_switch_state'] = None
 
     stop_event.set()
+
+    #######################################################
+    # Send notification
+    #######################################################
+    notification_obj.application_start()
 
 
 ###############################################################################
