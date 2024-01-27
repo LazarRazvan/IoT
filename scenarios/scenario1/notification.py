@@ -20,53 +20,57 @@ class Notification(object):
         subject = "Application Start"
         text = f"Application started with trigger value of {trigger_value} kW!"
 
-        try:
-        # create
-            msg = Message(subject=subject, body=text, sender=self.sender,
-                            recipients=self.recipients)
-            # send
-            self.mail.send(msg)
-        except:
-            print(f"Failed to send application start notification!")
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send application start notification: {e}!")
 
 
     def application_stop(self):
         subject = "Application Stop"
         text = f"Application stopped by user!"
 
-        try:
-        # create
-            msg = Message(subject=subject, body=text, sender=self.sender,
-                            recipients=self.recipients)
-            # send
-            self.mail.send(msg)
-        except:
-            print(f"Failed to send application stop notification!")
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send application stop notification: {e}!")
 
 
     def switch(self, err_msg):
         subject = "Switch Error"
         text = f"Error \"{err_msg}\" encountered trying to send switch command!"
 
-        try:
-        # create
-            msg = Message(subject=subject, body=text, sender=self.sender,
-                            recipients=self.recipients)
-            # send
-            self.mail.send(msg)
-        except:
-            print(f"Failed to send switch notification!")
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send switch notification: {e}!")
 
 
     def inverter(self, err_msg):
         subject = "Inverter Error"
         text = f"Error \"{err_msg}\" reported by inverter!"
 
-        try:
-        # create
-            msg = Message(subject=subject, body=text, sender=self.sender,
-                            recipients=self.recipients)
-            # send
-            self.mail.send(msg)
-        except:
-            print(f"Failed to send inverter notification!")
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send inverter notification: {e}!")
