@@ -46,6 +46,36 @@ class Notification(object):
                 print(f"Failed to send application stop notification: {e}!")
 
 
+    def switch_on(self, trigger_power, active_power):
+        subject = "Switch turned on"
+        text = f"Switched turned on! Trigger power: {trigger_power} kW; Active power: {active_power} kW!"
+
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send switch on notification: {e}!")
+
+
+    def switch_off(self, trigger_power, active_power):
+        subject = "Switch turned off"
+        text = f"Switched turned off! Trigger power: {trigger_power} kW; Active power: {active_power} kW!"
+
+        with self.flask_app.app_context():
+            try:
+            # create
+                msg = Message(subject=subject, body=text, sender=self.sender,
+                                recipients=self.recipients)
+                # send
+                self.mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send switch on notification: {e}!")
+
+
     def switch(self, err_msg):
         subject = "Switch Error"
         text = f"Error \"{err_msg}\" encountered trying to send switch command!"
