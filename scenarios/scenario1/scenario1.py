@@ -169,21 +169,21 @@ def application_task():
         #
         try:
             app_data['app_status_active_power'] = inverter_obj.real_time_active_power()
-            ##################################################################
-            # TODO
-            # This is a bug where huawei sends null values without any error
-            # or failCode being set.
-            ##################################################################
-            if app_data['app_status_active_power'] is None:
-                notification_obj.inverter("Active power is null")
-                print("Null active power reported by inverter!")
-                app_lock.release()
-                stop_event.wait(TASK_SLEEP_TIME)
-                continue
-
-        except ValueError as e:
+        except Exception as e:
             notification_obj.inverter(str(e))
             print("Read active power error: %s" % str(e))
+            app_lock.release()
+            stop_event.wait(TASK_SLEEP_TIME)
+            continue
+
+        ##################################################################
+        # TODO
+        # This is a bug where huawei sends null values without any error
+        # or failCode being set.
+        ##################################################################
+        if app_data['app_status_active_power'] is None:
+            notification_obj.inverter("Active power is null")
+            print("Null active power reported by inverter!")
             app_lock.release()
             stop_event.wait(TASK_SLEEP_TIME)
             continue
@@ -191,13 +191,15 @@ def application_task():
         #
         #
         #
-        print("active power: %f" % float(app_data['app_status_active_power']))
-        print("trigger power: %f" % float(app_data['app_config_trigger_value']))
+        active_power = float(app_data['app_status_active_power'])
+        trigger_power = float(app_data['app_config_trigger_value'])
+        print("active power: %f" % active_power)
+        print("trigger power: %f" % trigger_power)
 
         #
         # Update switch state
         #
-        if float(app_data['app_status_active_power']) >= float(app_data['app_config_trigger_value']):
+        if active_power >= trigger_power:
             #
             # Turn on switch
             #
@@ -205,7 +207,8 @@ def application_task():
             try:
                 tuya_obj.turn_on(['switch_1'])
                 app_data['app_status_switch_state'] = True
-            except ValueError as e:
+                notification_obj.switch_on(trigger_power, active_power)
+            except Exception as e:
                 notification_obj.switch(str(e))
                 print("Turn switch on error: %s" % str(e))
                 app_lock.release()
@@ -219,7 +222,8 @@ def application_task():
             try:
                 tuya_obj.turn_off(['switch_1'])
                 app_data['app_status_switch_state'] = False
-            except ValueError as e:
+                notification_obj.switch_off(trigger_power, active_power)
+            except Exception as e:
                 notification_obj.switch(str(e))
                 print("Turn switch off error: %s" % str(e))
                 app_lock.release()
@@ -305,7 +309,7 @@ def application_stop():
 
     try:
         tuya_obj.turn_off(['switch_1'])
-    except ValueError as e:
+    except Exception as e:
         notification_obj.switch(str(e))
         print("Turn switch off error: %s" % str(e))
         app_data['app_status_switch_state'] = None
@@ -315,7 +319,7 @@ def application_stop():
     #######################################################
     # Send notification
     #######################################################
-    notification_obj.application_start()
+    notification_obj.application_stop()
 
 
 ###############################################################################
