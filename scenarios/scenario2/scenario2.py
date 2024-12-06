@@ -9,6 +9,7 @@ from flask import Flask, request, render_template, jsonify
 sys.path.append('../../TuyaCloud')
 
 from TuyaSwitch import TuyaSwitch
+from TuyaThermostat import TuyaThermostat
 
 """
 Scenario: TODO
@@ -22,6 +23,8 @@ app = Flask(__name__)
 #
 app_data = {}
 #
+thermostat = None
+#
 living_obj = None
 #
 TASK_SLEEP_TIME = 300
@@ -34,6 +37,7 @@ lights = ["living", "bucatarie", "hol", "baie1", "baie2"]
 
 def application_init(file):
     global app_data
+    global thermostat
 
     print()
     print("Initialize application ...")
@@ -52,7 +56,7 @@ def application_init(file):
         data = json.load(f)
         #
         #######################################################
-        # Initialize tuya objects
+        # Initialize tuya light objects
         #######################################################
         for light in lights:
             print()
@@ -71,6 +75,24 @@ def application_init(file):
                             )
 
             app_data[light] = {"object" : obj, "switch_name" : light_switch_name}
+
+        #######################################################
+        # Initialize tuya thermostat
+        #######################################################
+        print()
+        print(f'Initialize thermostat object...')
+        print()
+        #
+        thermostat_device_id = data[f'app_tuya_thermostat_device_id']
+        #
+        thermostat = TuyaThermostat(
+                            client_region   = data['app_tuya_client_region'],
+                            client_id       = data['app_tuya_client_id'],
+                            client_secret   = data['app_tuya_client_secret'],
+                            device_id       = thermostat_device_id,
+                            log_file        = TUYA_LOG_FILE
+                        )
+
 
         #
         print()
@@ -96,6 +118,8 @@ def index():
 @app.route('/set_button', methods=['POST'])
 def set_button():
     global app_data
+    global thermostat
+
     #
     # Extract name and state from request
     #
@@ -126,6 +150,8 @@ def set_button():
 @app.route('/get_button')
 def get_button():
     global app_data
+    global thermostat
+
     result = {}
     #
     #
@@ -135,6 +161,11 @@ def get_button():
         switch_name = value['switch_name']
         state = tuya_obj.get_status(switch_name)[switch_name]
         result[key] = state
+    #
+    #
+    #
+    result["set_temp"] = thermostat.get_trigger_temperature()
+    result["room_temp"] = thermostat.get_room_temperature()
     #
     #
     #

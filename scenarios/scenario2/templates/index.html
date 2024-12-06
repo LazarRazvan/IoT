@@ -1,41 +1,53 @@
-<!--
-<html>
-	<head>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-		<script src="{{ url_for('static', filename='script.js') }}"></script>
-		<title>Bucuresti Home</title>
-	</head>
-	<body>
-		<div class="img-div">
-			<style>
-				body {
-					background-image: url('/static/img/background.png');
-					background-size: cover;
-					background-repeat: no-repeat;
-				}
-			</style>
-			<button class="button" id="living" onClick="genericAction()"></button>
-		</div>
-	</body>
-</html>
--->
-
 <!DOCTYPE html>
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 	<script src="{{ url_for('static', filename='script.js') }}"></script>
+
 	<title>Apartament Bucuresti</title>
 </head>
 <body>
 	<div class="container">
 		<img src="/static/img/background.png" alt="Snow" style="width:100%">
+		<!-- Existing buttons -->
 		<button id="living" class="lights" onClick="genericAction()"></button>
 		<button id="bucatarie" class="lights" onClick="genericAction()"></button>
 		<button id="hol" class="lights" onClick="genericAction()"></button>
 		<button id="baie1" class="lights" onClick="genericAction()"></button>
 		<button id="baie2" class="lights" onClick="genericAction()"></button>
+
+		<!-- Temperature setter -->
+		<div class="temperature-setter">
+			<div class="set-temperature">
+				<button id="decrease-btn">-</button>
+				<div id="temperature-value">-1</div>
+				<button id="increase-btn">+</button>
+			</div>
+			<div class="room-temperature">
+				<span>Room:</span>
+				<span id="room-temperature-value">-1</span>
+				<span>°C</span>
+			</div>
+		</div>
 	</div>
+
+	<script>
+		// Temperature setter functionality
+		const tempValue = document.getElementById("temperature-value");
+		const decreaseBtn = document.getElementById("decrease-btn");
+		const increaseBtn = document.getElementById("increase-btn");
+
+		decreaseBtn.addEventListener("click", () => {
+		let currentValue = parseFloat(tempValue.textContent); // Parse as a float
+		tempValue.textContent = (Math.max(currentValue - 0.5, 0)).toFixed(1);
+    });
+
+		increaseBtn.addEventListener("click", () => {
+		let currentValue = parseFloat(tempValue.textContent); // Parse as a float
+		tempValue.textContent = (Math.min(currentValue + 0.5, 100)).toFixed(1);
+    });
+	</script>
 </body>
 </html>
+

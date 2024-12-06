@@ -1,29 +1,3 @@
-/*
-.img-div{
-  position:relative;
-}
-.button
-{
-  position:fixed;
-  background-color: #4d4d4d;
-  border: none;
-  color: white;
-  padding: 40px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 4px;
-  border-radius: 50%;
-}
-
-#living{
-  transition: .5s ease;
-  top: 70%;
-  left: 67%;
-}
-*/
-
 .container {
   position: relative;
   width: 100%;
@@ -75,3 +49,63 @@
   top: 70%;
   left: 15%;
 }
+
+.temperature-setter {
+  position: absolute;
+  top: 40%;
+  left: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.set-temperature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.set-temperature button {
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.set-temperature button:hover {
+  background-color: #0056b3;
+}
+
+.set-temperature #temperature-value {
+  font-size: 20px;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+  color: #333333;
+}
+
+.room-temperature {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #555555;
+}
+
+.room-temperature span {
+  margin: 0 5px;
+}
+

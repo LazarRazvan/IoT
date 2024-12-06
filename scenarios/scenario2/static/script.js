@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
     var baie2 = document.getElementById("baie2");
     var living = document.getElementById("living");
     var bucatarie = document.getElementById("bucatarie");
+	var set_temp = document.getElementById("temperature-value");
+	var room_temp = document.getElementById("room-temperature-value");
 
     // Fetch data from the server on page load.
     fetch('/get_button')
@@ -73,6 +75,10 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 baie2.style.backgroundColor = "#4d4d4d";
             }
+			// set_temp
+			room_temp.textContent = parseFloat(data["set_temp"]/10).toFixed(1)
+			// room_temp
+			room_temp.textContent = parseFloat(data["room_temp"]/10).toFixed(1)
         })
         .catch(error => {
             console.error('Error fetching data:', error);
